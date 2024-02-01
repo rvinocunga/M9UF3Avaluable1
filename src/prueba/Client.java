@@ -1,6 +1,14 @@
 package prueba;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -8,7 +16,7 @@ import java.util.Scanner;
  */
 public class Client {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SocketException, IOException {
         Scanner teclat = new Scanner(System.in);
         boolean sortir = false;
 
@@ -22,7 +30,7 @@ public class Client {
                 int opcio = teclat.nextInt();
                 switch (opcio) {
                     case 1:
-                        System.out.println("Creando partida...");
+                        crearPartida();
                         break;
                     case 2:
                         System.out.println("Conectando...");
@@ -42,4 +50,32 @@ public class Client {
 
     }
 
+    private static void crearPartida() {
+        Scanner sc = new Scanner(System.in);
+        //testeig
+        InetAddress serverAddress;
+        int serverPort = 7879;
+        
+        try {
+            System.out.println("Introduce el puerto para jugar: ");
+            String msg = "CREAR " + sc.nextLine();
+
+            serverAddress = InetAddress.getByName("127.0.0.1");
+            
+            //enviar missatge a servidor
+            DatagramSocket socket = new DatagramSocket();
+
+            byte[] bytesOUT = msg.getBytes();
+            DatagramPacket outPacket = new DatagramPacket(bytesOUT, bytesOUT.length,
+                    serverAddress, serverPort);
+            socket.send(outPacket);
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SocketException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
 }
