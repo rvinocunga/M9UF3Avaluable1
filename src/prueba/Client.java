@@ -34,6 +34,7 @@ public class Client {
                         break;
                     case 2:
                         System.out.println("Conectando...");
+                        unirsePartida();
                         break;
                     case 3:
                         System.out.println("Cerrando...");
@@ -46,22 +47,33 @@ public class Client {
                 System.out.println("\nEscribe un numero...\n");
                 teclat.next();
             }
+            System.out.println("");
         } while (!sortir);
 
     }
 
     private static void crearPartida() {
         Scanner sc = new Scanner(System.in);
+
         //testeig
         InetAddress serverAddress;
         int serverPort = 7879;
-        
+
         try {
-            System.out.println("Introduce el puerto para jugar: ");
+            do {
+                System.out.println("\nIntroduce el puerto para jugar: ");
+                if (sc.hasNextInt()) {
+                    break;
+                } else {
+                    System.out.println("Introdueix un valor númeric...");
+                    sc.nextLine();
+                }
+            } while (true);
+
             String msg = "CREAR " + sc.nextLine();
 
             serverAddress = InetAddress.getByName("127.0.0.1");
-            
+
             //enviar missatge a servidor
             DatagramSocket socket = new DatagramSocket();
 
@@ -76,6 +88,10 @@ public class Client {
         } catch (IOException ex) {
             Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
         }
+
+    }
+
+    private static void unirsePartida() {
 
     }
 }
