@@ -1,4 +1,3 @@
-
 package UDP;
 
 import java.io.IOException;
@@ -12,27 +11,27 @@ import m9uf3avaluablestresenratlla.GameSession;
 // Clase principal del servidor UDP
 public class UDPServer {
     private DatagramSocket socket;
-    private ConcurrentLinkedQueue<GameSession> gameQueue;
+    private ConcurrentLinkedQueue<GameSession> colaDeJuegos;
 
     // Constructor del servidor que inicializa el socket y la cola de partidas
-    public UDPServer(int port) throws SocketException {
-        socket = new DatagramSocket(port);
-        gameQueue = new ConcurrentLinkedQueue<>();
+    public UDPServer(int puerto) throws SocketException {
+        socket = new DatagramSocket(puerto);
+        colaDeJuegos = new ConcurrentLinkedQueue<>();
     }
 
     // Método para comenzar a escuchar peticiones
-    public void listen() {
+    public void escuchar() {
         byte[] buffer = new byte[1024];
-        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+        DatagramPacket paquete = new DatagramPacket(buffer, buffer.length);
 
         while (true) {
             try {
                 // Recibir paquete UDP
-                socket.receive(packet);
-                String received = new String(packet.getData(), 0, packet.getLength());
+                socket.receive(paquete);
+                String recibido = new String(paquete.getData(), 0, paquete.getLength());
 
                 // Manejar mensaje recibido
-                handleMessage(received, packet);
+                manejarMensaje(recibido, paquete);
             } catch (IOException e) {
                 System.out.println("IOException: " + e.getMessage());
                 // Manejar excepción
@@ -41,16 +40,16 @@ public class UDPServer {
     }
 
     // Método para manejar los mensajes recibidos
-    private void handleMessage(String message, DatagramPacket packet) {
-        String[] parts = message.split(" ");
-        String messageType = parts[0];
+    private void manejarMensaje(String mensaje, DatagramPacket paquete) {
+        String[] partes = mensaje.split(" ");
+        String tipoDeMensaje = partes[0];
         
-        switch (messageType) {
+        switch (tipoDeMensaje) {
             case "CREAR":
-                handleCreate(message, packet);
+                manejarCrear(mensaje, paquete);
                 break;
             case "UNIR-ME":
-                handleJoin(packet);
+                manejarUnirse(paquete);
                 break;
             default:
                 // Enviar error o manejar otros mensajes
@@ -59,53 +58,47 @@ public class UDPServer {
     }
 
     // Métodos para manejar la creación y unión de partidas
-    private void handleCreate(String message, DatagramPacket packet) {
+    private void manejarCrear(String mensaje, DatagramPacket paquete) {
         // Extraer puerto del juego del mensaje
-        int gamePort = Integer.parseInt(message.split(" ")[1]);
+        int puertoDelJuego = Integer.parseInt(mensaje.split(" ")[1]);
         // Crear una nueva sesión de juego
-        GameSession newSession = new GameSession(packet.getAddress(), gamePort);
+        GameSession nuevaSesion = new GameSession(paquete.getAddress(), puertoDelJuego);
         // Añadir a la cola de juegos
-        gameQueue.add(newSession);
+        colaDeJuegos.add(nuevaSesion);
         // Enviar una respuesta de OK
-        sendResponse("OK", packet.getAddress(), packet.getPort());
+        enviarRespuesta("OK", paquete.getAddress(), paquete.getPort());
     }
 
-    private void handleJoin(DatagramPacket packet) {
-        GameSession session = gameQueue.poll();
-        if (session != null) {
+    private void manejarUnirse(DatagramPacket paquete) {
+        GameSession sesion = colaDeJuegos.poll();
+        if (sesion != null) {
             // Formato: ip_partida::port_partida
-            String response = session.getIpAddress().toString().substring(1) + "::" + session.getPort();
-            sendResponse(response, packet.getAddress(), packet.getPort());
+            String respuesta = sesion.getIpAddress().toString().substring(1) + "::" + sesion.getPort();
+            enviarRespuesta(respuesta, paquete.getAddress(), paquete.getPort());
         } else {
             // No hay juegos disponibles
-            sendResponse("ESPERA", packet.getAddress(), packet.getPort());
+            enviarRespuesta("ESPERA", paquete.getAddress(), paquete.getPort());
         }
     }
 
     // Método para enviar respuestas a los clientes
-    private void sendResponse(String message, InetAddress address, int port) {
+    private void enviarRespuesta(String mensaje, InetAddress direccion, int puerto) {
         try {
-            byte[] buffer = message.getBytes();
-            DatagramPacket responsePacket = new DatagramPacket(buffer, buffer.length, address, port);
-            socket.send(responsePacket);
+            byte[] buffer = mensaje.getBytes();
+            DatagramPacket paqueteRespuesta = new DatagramPacket(buffer, buffer.length, direccion, puerto);
+            socket.send(paqueteRespuesta);
         } catch (IOException e) {
             System.out.println("IOException: " + e.getMessage());
-            
         }
     }
 
     // Punto de entrada del programa
     public static void main(String[] args) {
         try {
-            UDPServer server = new UDPServer(7879);
-            server.listen();
+            UDPServer servidor = new UDPServer(7879);
+            servidor.escuchar();
         } catch (SocketException e) {
             System.out.println("SocketException: " + e.getMessage());
         }
     }
 }
-    
-    
-    
-    
-

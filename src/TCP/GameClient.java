@@ -15,11 +15,11 @@ public class GameClient {
         in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
     }
 
-    public void sendMessage(String msg) throws IOException {
+    public void enviarMensaje(String msg) throws IOException {
         out.println(msg);
     }
 
-    public String receiveMessage() throws IOException {
+    public String recibirMensaje() throws IOException {
         return in.readLine();
     }
 
